@@ -1,37 +1,45 @@
-name: Build and deploy Node.js app to Azure Web App
+name: Build and deploy Node.js app to Azure Web App - AWSChimeAPIBackendPOC
 
 on:
   push:
     branches:
-      - main   # or your default branch
+      - main
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest   # lightweight & recommended for Node apps
+    runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repo
-      - name: Checkout GitHub repository
-        uses: actions/checkout@v3
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # 2. Set up Node.js version
+      # Setup Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'   # adjust to your project needs
+          node-version: '18.x'
 
-      # 3. Install dependencies
-      - name: Install dependencies
-        run: npm install
+      # Install dependencies & build
+      - name: Install and build
+        run: |
+          npm install
+          npm run build --if-present
+          npm test --if-present
 
-      # 4. Build (for React or other build-step projects)
-      - name: Build project
-        run: npm run build --if-present
-
-      # 5. Deploy to Azure App Service
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
+      # Login to Azure using Service Principal
+      - name: Azure Login
+        uses: azure/login@v2
         with:
-          app-name: 'YOUR_AZURE_APP_NAME'        # 👈 Replace with App Service name
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_443BAA7EB9D145555D42FADA55435 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5CAFEBB8F1874CA896A8C3C13F32E87B }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0F06547BB172464398A319002D94BE5D }}
+
+      # Deploy to Azure Web App
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'AWSChimeAPIBackendPOC'
           slot-name: 'production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
+          package: .
