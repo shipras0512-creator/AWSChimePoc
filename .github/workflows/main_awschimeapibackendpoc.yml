@@ -32,9 +32,9 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_443BAA7EB9D145555D42FADA55435 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_443BAA7EB9D1455686D9D42FADA55435 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5CAFEBB8F1874CA896A8C3C13F32E87B }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0F06547BB172464398A319002D94BE5D }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0F07967BB172464398A319002D94BE5D }}
 
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
@@ -43,3 +43,4 @@ jobs:
           app-name: 'AWSChimeAPIBackendPOC'
           slot-name: 'production'
           package: .
+
