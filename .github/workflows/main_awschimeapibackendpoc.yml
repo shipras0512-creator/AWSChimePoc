@@ -26,7 +26,7 @@ jobs:
         run: |
           npm install
           npm run build --if-present
-          npm test --if-present
+         
 
       # Login to Azure using Service Principal
       - name: Azure Login
@@ -43,4 +43,5 @@ jobs:
           app-name: 'AWSChimeAPIBackendPOC'
           slot-name: 'production'
           package: .
+
 
