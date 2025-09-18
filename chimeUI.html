@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AWS Chime Demo</title>
+  <!-- Chime SDK from CDN -->
+  <script src="https://unpkg.com/amazon-chime-sdk-js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    video, audio { width: 300px; border: 1px solid #ccc; margin: 5px; }
+    button { margin: 5px; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Amazon Chime Meeting Demo</h2>
+
+  <div>
+    <button id="createMeetingBtn">Create Meeting</button>
+    <input id="meetingIdInput" placeholder="Enter Meeting ID" />
+    <input id="userNameInput" placeholder="Enter your name" />
+    <button id="joinMeetingBtn">Join Meeting</button>
+    <button id="leaveMeetingBtn">Leave Meeting</button>
+  </div>
+
+  <h3>Local Video</h3>
+  <video id="localVideo" autoplay muted playsinline></video>
+
+  <h3>Remote Video</h3>
+  <video id="remoteVideo" autoplay playsinline></video>
+
+  <h3>Audio</h3>
+  <audio id="audioEl" autoplay></audio>
+
+  <script>
+    let meetingSession;
+    let audioVideo;
+
+    async function createMeeting() {
+      const response = await fetch("http://localhost:3000/createMeeting", {
+        method: "POST"
+      });
+      const data = await response.json();
+      const meetingId = data.Meeting.MeetingId;
+      alert("Meeting created. ID: " + meetingId);
+      document.getElementById("meetingIdInput").value = meetingId;
+    }
+
+    async function joinMeeting() {
+      const meetingId = document.getElementById("meetingIdInput").value;
+      const userName = document.getElementById("userNameInput").value || "Guest";
+
+      const response = await fetch("http://localhost:3000/createAttendee", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ meetingId, userName })
+      });
+
+      const data = await response.json();
+      if (!data.Meeting || !data.Attendee) {
+        alert("Error joining meeting: " + JSON.stringify(data));
+        return;
+      }
+
+      // ✅ Always use window.ChimeSDK
+      const configuration = new window.ChimeSDK.MeetingSessionConfiguration(
+        data.Meeting,
+        data.Attendee
+      );
+
+      meetingSession = new window.ChimeSDK.DefaultMeetingSession(configuration);
+      audioVideo = meetingSession.audioVideo;
+
+      // Local video
+      const localVideoEl = document.getElementById("localVideo");
+      const devices = await audioVideo.listVideoInputDevices();
+      if (devices.length > 0) {
+        await audioVideo.startVideoInput(devices[0].deviceId);
+        audioVideo.startLocalVideoTile();
+        audioVideo.bindVideoElement(1, localVideoEl);
+      }
+
+      // Remote video
+      audioVideo.bindVideoElement(2, document.getElementById("remoteVideo"));
+
+      // Audio
+      audioVideo.bindAudioElement(document.getElementById("audioEl"));
+
+      // Subscribe to attendee presence
+      audioVideo.realtimeSubscribeToAttendeeIdPresence((attendeeId, present) => {
+        console.log("Attendee presence:", attendeeId, present);
+      });
+
+      audioVideo.start();
+    }
+
+    async function leaveMeeting() {
+      if (audioVideo) {
+        audioVideo.stop();
+        audioVideo = null;
+        meetingSession = null;
+        alert("You have left the meeting.");
+      }
+    }
+
+    document.getElementById("createMeetingBtn").onclick = createMeeting;
+    document.getElementById("joinMeetingBtn").onclick = joinMeeting;
+    document.getElementById("leaveMeetingBtn").onclick = leaveMeeting;
+  </script>
+</body>
+</html>
