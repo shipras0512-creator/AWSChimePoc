@@ -10,6 +10,10 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write   # REQUIRED for Azure OIDC login
+      contents: read    # checkout needs this
+
     steps:
       # Checkout code
       - name: Checkout code
@@ -28,13 +32,13 @@ jobs:
           npm run build --if-present
          
 
-      # Login to Azure using Service Principal
+      # Login to Azure (OIDC)
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_443BAA7EB9D1455686D9D42FADA55435 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_443BAA7EB9D145555D42FADA55435 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5CAFEBB8F1874CA896A8C3C13F32E87B }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0F07967BB172464398A319002D94BE5D }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0F06547BB172464398A319002D94BE5D }}
 
       # Deploy to Azure Web App
       - name: Deploy to Azure Web App
@@ -43,5 +47,3 @@ jobs:
           app-name: 'AWSChimeAPIBackendPOC'
           slot-name: 'production'
           package: .
-
-
